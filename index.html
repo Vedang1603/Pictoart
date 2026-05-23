@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PICTOART — Fine Art Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Tenor+Sans&family=Cinzel:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080806;--surface2:#161614;
+  --bone:#f2ede4;--bone-dim:#a09890;
+  --muted:#2a2824;--muted2:#3e3b38;
+  --accent:#c8a96a;
+  --pp:clamp(24px,5vw,80px);
+  --sg:clamp(80px,10vw,140px);
+  --gap:24px;--r:4px;
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{background:var(--bg);color:var(--bone);font-family:'Tenor Sans',sans-serif;cursor:none;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;width:100%;height:100%;object-fit:cover}
+button{cursor:none;background:none;border:none;color:inherit;font-family:inherit}
+
+/* CURSOR */
+#cursor{position:fixed;top:0;left:0;pointer-events:none;z-index:99999}
+#cd{width:6px;height:6px;background:#fff;border-radius:50%;position:absolute;transform:translate(-50%,-50%);mix-blend-mode:difference}
+#cr{width:36px;height:36px;border:1px solid rgba(255,255,255,.5);border-radius:50%;position:absolute;transform:translate(-50%,-50%);transition:width .3s,height .3s,border-color .3s;mix-blend-mode:difference}
+.cg #cr{width:60px;height:60px;border-color:var(--accent)}
+
+/* LOADER */
+#loader{position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+.ll{font-family:'Cinzel',serif;font-size:clamp(2.5rem,7vw,6rem);letter-spacing:.5em;padding-right:.5em}
+.ll span{display:inline-block;opacity:0;transform:translateY(80px)}
+.lp{width:clamp(160px,20vw,240px);height:1px;background:var(--muted);overflow:hidden}
+.lb{height:100%;width:0;background:var(--accent)}
+.lnum{font-family:'Cinzel',serif;font-size:10px;letter-spacing:4px;color:var(--bone-dim)}
+
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:20px var(--pp);display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-bottom:1px solid transparent;transition:border-color .4s}
+#nav.sc{border-color:var(--muted)}
+.nlogo{font-family:'Cinzel',serif;font-size:1rem;letter-spacing:.4em}
+.nlinks{display:flex;gap:clamp(20px,3vw,44px);list-style:none}
+.nlinks a{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--bone-dim);text-transform:uppercase;transition:color .3s}
+.nlinks a:hover{color:var(--bone)}
+.nmb{display:none;flex-direction:column;gap:5px;padding:4px}
+.nmb span{display:block;width:24px;height:1px;background:var(--bone)}
+
+/* HERO */
+#hero{position:relative;height:100svh;min-height:600px;overflow:hidden}
+.hslide{position:absolute;inset:0;opacity:0;transition:opacity 1.2s ease}
+.hslide.on{opacity:1}
+.hslide img{width:100%;height:100%;object-fit:cover;filter:brightness(.35);transform:scale(1.06);animation:kB 8s ease-out forwards}
+@keyframes kB{from{transform:scale(1.06)}to{transform:scale(1)}}
+.hovl{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,6,.9) 0%,rgba(8,8,6,.08) 55%,transparent 100%);z-index:1}
+.hcon{position:absolute;bottom:0;left:0;right:0;z-index:2;padding:0 var(--pp) clamp(48px,7vw,100px)}
+.heyb{font-family:'Cinzel',serif;font-size:9px;letter-spacing:6px;color:var(--accent);margin-bottom:20px;opacity:0;text-transform:uppercase}
+.htitle{font-family:'Playfair Display',serif;font-size:clamp(3rem,8.5vw,8.5rem);font-weight:400;line-height:.95;letter-spacing:-.02em}
+.htitle .hline{overflow:hidden;display:block}
+.htitle .hw{display:inline-block;transform:translateY(110%);opacity:0}
+.htitle em{font-style:italic;color:var(--accent)}
+.hsub{margin-top:28px;font-family:'Tenor Sans',sans-serif;font-size:clamp(12px,1.2vw,14px);line-height:1.9;color:var(--bone-dim);max-width:400px;opacity:0}
+.hact{margin-top:40px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;opacity:0}
+.btnp{display:inline-block;padding:13px 32px;border:1px solid var(--accent);font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;transition:background .35s,color .35s}
+.btnp:hover{background:var(--accent);color:var(--bg)}
+.btnt{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--bone-dim);text-transform:uppercase;display:flex;align-items:center;gap:8px;transition:color .3s}
+.btnt:hover{color:var(--bone)}
+.hdots{position:absolute;right:var(--pp);bottom:clamp(48px,7vw,100px);z-index:3;display:flex;flex-direction:column;gap:8px}
+.hdot{width:1px;height:24px;background:var(--muted2);transition:background .3s,height .3s}
+.hdot.on{height:40px;background:var(--accent)}
+
+/* SECTION COMMON */
+.sec{padding:var(--sg) var(--pp)}
+.sh{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:clamp(32px,4vw,56px);flex-wrap:wrap;gap:16px}
+.sey{font-family:'Cinzel',serif;font-size:9px;letter-spacing:5px;color:var(--accent);text-transform:uppercase;margin-bottom:12px}
+.stit{font-family:'Playfair Display',serif;font-size:clamp(2rem,4.5vw,4rem);font-weight:400;line-height:1;letter-spacing:-.01em}
+.stit em{font-style:italic;color:var(--accent)}
+.slink{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--bone-dim);text-transform:uppercase;display:flex;align-items:center;gap:8px;padding-bottom:2px;border-bottom:1px solid var(--muted);transition:color .3s,border-color .3s;white-space:nowrap}
+.slink span{transition:transform .3s}
+.slink:hover{color:var(--bone);border-color:var(--bone)}
+.slink:hover span{transform:translateX(4px)}
+
+/* ═══ FEATURED WORKS — GSAP SCROLL-PINNED HORIZONTAL ═══ */
+#gal-sec{padding-bottom:0}
+#gal-sec .sh{padding:0 var(--pp);margin-bottom:clamp(24px,3vw,40px)}
+
+/* The pinned wrapper — GSAP will pin this while scroll drives horizontal */
+#gal-pin{
+  overflow:hidden;
+  border-top:1px solid var(--muted);
+  border-bottom:1px solid var(--muted);
+}
+
+/* The horizontal strip that GSAP translates */
+#gal-track{
+  display:flex;
+  align-items:center;
+  gap:var(--gap);
+  padding:clamp(32px,5vw,64px) var(--pp);
+  /* width set by JS = sum of all card widths + gaps + extra padding */
+  will-change:transform;
+}
+
+/* Each card: fixed portrait 3:4, scale effect driven by progress */
+.gc{
+  flex-shrink:0;
+  position:relative;
+  border-radius:var(--r);
+  overflow:hidden;
+  cursor:none;
+  /* width/height set by JS based on viewport */
+  will-change:transform,filter;
+  transition:box-shadow .5s ease;
+}
+.gc img{
+  width:100%;height:100%;object-fit:cover;display:block;
+}
+.gc-info{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:clamp(14px,2vw,22px);
+  background:linear-gradient(to top,rgba(0,0,0,.92) 0%,transparent 100%);
+  transform:translateY(6px);opacity:0;
+  transition:transform .45s ease,opacity .45s ease;
+}
+.gc:hover .gc-info{transform:translateY(0);opacity:1}
+.gc-title{font-family:'Playfair Display',serif;font-size:clamp(.9rem,1.4vw,1.25rem);font-weight:400}
+.gc-artist{font-family:'Cinzel',serif;font-size:8px;color:var(--bone-dim);letter-spacing:2px;margin-top:4px}
+
+/* progress indicator dots */
+#gal-progress{
+  display:flex;justify-content:center;gap:8px;
+  padding:20px var(--pp) clamp(48px,6vw,80px);
+}
+.gp-dot{
+  width:24px;height:1px;background:var(--muted2);
+  transition:width .3s ease,background .3s ease;
+}
+.gp-dot.on{width:48px;background:var(--accent)}
+
+/* ═══ FLOWING MENU ═══ */
+#flow-sec{height:clamp(400px,60vh,640px);position:relative;overflow:hidden;border-top:1px solid var(--muted)}
+.mwrap{width:100%;height:100%;background:var(--bg)}
+.mnav{display:flex;flex-direction:column;height:100%}
+.mitem{flex:1;position:relative;overflow:hidden;border-top:1px solid var(--muted)}
+.mitem:first-child{border-top:none}
+.mlink{display:flex;align-items:center;justify-content:center;height:100%;position:relative;cursor:none;text-transform:uppercase;text-decoration:none;white-space:nowrap;font-family:'Playfair Display',serif;font-weight:400;font-size:clamp(1.5rem,3.5vh,3rem);letter-spacing:.1em;color:var(--bone);transition:letter-spacing .5s ease}
+.mlink:hover{letter-spacing:.25em}
+.mmq{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;transform:translateY(101%);overflow:hidden}
+.mmqiw{height:100%;width:100%;overflow:hidden}
+.mmqin{display:flex;align-items:center;height:100%;width:fit-content;will-change:transform}
+.mmqp{display:flex;align-items:center;flex-shrink:0}
+.mmqp span{white-space:nowrap;text-transform:uppercase;font-family:'Playfair Display',serif;font-weight:400;font-size:clamp(1.5rem,3.5vh,3rem);letter-spacing:.08em;padding:0 2vw}
+.mmqimg{width:clamp(120px,15vw,200px);height:7vh;margin:1.5em 2vw;border-radius:3px;background-size:cover;background-position:center}
+
+/* ═══ GENRE FLIP CARDS ═══ */
+#genre-sec{border-top:1px solid var(--muted)}
+.gfilt{display:flex;flex-wrap:wrap;gap:0;margin-bottom:clamp(32px,4vw,56px);border-bottom:1px solid var(--muted)}
+.gbtn{padding:12px clamp(14px,2vw,28px);font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--bone-dim);border-right:1px solid var(--muted);transition:color .3s,background .3s;white-space:nowrap}
+.gbtn.on,.gbtn:hover{color:var(--accent);background:rgba(200,169,106,.06)}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(200px,25vw,320px),1fr));gap:var(--gap)}
+.fcard{aspect-ratio:3/4;perspective:1200px;cursor:none}
+.finner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.25,.46,.45,.94)}
+.fcard:hover .finner{transform:rotateY(180deg)}
+.ffront,.fback{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--r);overflow:hidden}
+.ffront img{width:100%;height:100%;object-fit:cover;filter:brightness(.75);transform:scale(1.04);transition:transform .7s ease,filter .7s ease}
+.fcard:hover .ffront img{transform:scale(1.1);filter:brightness(.5)}
+.finfo{position:absolute;bottom:0;left:0;right:0;padding:24px;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,transparent 100%)}
+.fcatl{font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.fcatn{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,2vw,1.7rem);font-weight:400}
+.fcatc{font-family:'Cinzel',serif;font-size:8px;color:var(--bone-dim);letter-spacing:2px;margin-top:6px}
+.fback{transform:rotateY(180deg);background:var(--surface2);border:1px solid var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(24px,4vw,40px);text-align:center;gap:20px}
+.fbackt{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,2.5vw,2.2rem);font-style:italic}
+.fbackd{font-family:'Tenor Sans',sans-serif;font-size:13px;line-height:1.9;color:var(--bone-dim);max-width:240px}
+.fbackb{padding:10px 24px;border:1px solid var(--accent);font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);transition:background .3s,color .3s}
+.fbackb:hover{background:var(--accent);color:var(--bg)}
+
+/* ═══ ARTISTS ═══ */
+#art-sec{border-top:1px solid var(--muted)}
+.atwrap{overflow:hidden;margin:0 calc(-1 * var(--pp))}
+.atrack{display:flex;gap:var(--gap);padding:0 var(--pp);will-change:transform}
+.acard{flex:0 0 clamp(220px,28vw,380px);aspect-ratio:3/4;position:relative;overflow:hidden;cursor:none;border-radius:var(--r);flex-shrink:0}
+.acard img{width:100%;height:100%;object-fit:cover;object-position:center top;filter:grayscale(60%) brightness(.75);transform:scale(1.05);transition:transform .7s ease,filter .7s ease}
+.acard:hover img{transform:scale(1.12);filter:grayscale(0%) brightness(.55)}
+.ainfo{position:absolute;bottom:0;left:0;right:0;padding:clamp(20px,3vw,32px);background:linear-gradient(to top,rgba(0,0,0,.9) 0%,transparent 100%)}
+.anum{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--accent);margin-bottom:8px}
+.aname{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,2vw,1.8rem);font-weight:400}
+.amedium{font-family:'Tenor Sans',sans-serif;font-size:11px;color:var(--bone-dim);letter-spacing:1px;margin-top:6px;transform:translateY(8px);opacity:0;transition:transform .4s ease,opacity .4s ease}
+.acard:hover .amedium{transform:translateY(0);opacity:1}
+.anav{display:flex;gap:12px;margin-top:24px}
+.anb{width:44px;height:44px;border:1px solid var(--muted);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--bone-dim);transition:border-color .3s,color .3s}
+.anb:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ═══ BENTO GRID — ASYMMETRIC v1 STYLE ═══ */
+#bento-sec{border-top:1px solid var(--muted)}
+#bentog{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  grid-template-rows:clamp(180px,22vw,280px) clamp(180px,22vw,280px) clamp(180px,22vw,280px);
+  gap:var(--gap);
+}
+#bentog .bc:nth-child(1){grid-column:1/6;grid-row:1/3}
+#bentog .bc:nth-child(2){grid-column:6/9;grid-row:1/2}
+#bentog .bc:nth-child(3){grid-column:9/13;grid-row:1/2}
+#bentog .bc:nth-child(4){grid-column:6/10;grid-row:2/3}
+#bentog .bc:nth-child(5){grid-column:10/13;grid-row:2/3}
+#bentog .bc:nth-child(6){grid-column:1/5;grid-row:3/4}
+#bentog .bc:nth-child(7){grid-column:5/9;grid-row:3/4}
+#bentog .bc:nth-child(8){grid-column:9/13;grid-row:3/4}
+.bc{position:relative;overflow:hidden;border-radius:var(--r);cursor:none}
+.bc img{width:100%;height:100%;object-fit:cover;filter:brightness(.72);transform:scale(1.05);transition:transform .75s ease,filter .75s ease}
+.bc:hover img{transform:scale(1.13);filter:brightness(.48)}
+.bclab{position:absolute;bottom:0;left:0;right:0;padding:clamp(14px,2vw,22px);background:linear-gradient(to top,rgba(0,0,0,.85) 0%,transparent 100%)}
+.bctit{font-family:'Playfair Display',serif;font-size:clamp(.9rem,1.3vw,1.2rem);font-weight:400}
+.bcmet{font-family:'Cinzel',serif;font-size:8px;color:var(--bone-dim);letter-spacing:2px;margin-top:4px}
+
+/* FOOTER */
+#footer{border-top:1px solid var(--muted);padding:clamp(48px,7vw,80px) var(--pp)}
+.ftop{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:clamp(32px,5vw,80px);padding-bottom:clamp(32px,4vw,56px);border-bottom:1px solid var(--muted)}
+.flogo{font-family:'Cinzel',serif;font-size:clamp(1.4rem,2.5vw,2rem);letter-spacing:.35em;margin-bottom:16px}
+.ftag{font-family:'Tenor Sans',sans-serif;font-size:13px;line-height:1.9;color:var(--bone-dim);max-width:280px}
+.fcol h4{font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+.fcol ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+.fcol a{font-family:'Tenor Sans',sans-serif;font-size:13px;color:var(--bone-dim);transition:color .3s}
+.fcol a:hover{color:var(--bone)}
+.fbot{display:flex;justify-content:space-between;align-items:center;padding-top:clamp(24px,3vw,36px);flex-wrap:wrap;gap:12px}
+.fcp{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:var(--muted2)}
+
+/* ═══════════════════════════════════════════════
+   MOBILE SIDEBAR DRAWER
+═══════════════════════════════════════════════ */
+#mob-sidebar{
+  position:fixed;top:0;right:0;bottom:0;
+  width:min(88vw,360px);
+  background:var(--bg);
+  z-index:9000;
+  transform:translateX(100%);
+  transition:transform .55s cubic-bezier(.77,0,.18,1);
+  border-left:1px solid var(--muted);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+#mob-sidebar.open{transform:translateX(0)}
+
+/* Overlay behind sidebar */
+#mob-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.7);
+  z-index:8999;
+  opacity:0;pointer-events:none;
+  transition:opacity .45s ease;
+  backdrop-filter:blur(2px);
+}
+#mob-overlay.open{opacity:1;pointer-events:auto}
+
+/* Sidebar header */
+.msb-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 28px;
+  border-bottom:1px solid var(--muted);
+  flex-shrink:0;
+}
+.msb-logo{font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.35em;color:var(--bone)}
+.msb-close{
+  width:36px;height:36px;
+  border:1px solid var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--bone-dim);font-size:1rem;
+  cursor:none;
+  transition:border-color .3s,color .3s;
+}
+.msb-close:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Nav items — each is a full-width row with hover image reveal */
+.msb-nav{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.msb-item{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  border-bottom:1px solid var(--muted);
+  display:flex;align-items:center;
+  cursor:none;
+}
+/* The image reveal panel — slides up from bottom on touch */
+.msb-img{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  transform:translateY(101%);
+  transition:transform .5s cubic-bezier(.77,0,.18,1);
+}
+.msb-item.touched .msb-img,
+.msb-item:hover .msb-img{
+  transform:translateY(0);
+}
+/* Dark overlay so text stays readable over image */
+.msb-item-ovl{
+  position:absolute;inset:0;
+  background:rgba(8,8,6,.55);
+  opacity:0;transition:opacity .5s ease;
+}
+.msb-item.touched .msb-item-ovl,
+.msb-item:hover .msb-item-ovl{opacity:1}
+
+/* Link text */
+.msb-link{
+  position:relative;z-index:2;
+  width:100%;
+  padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.4rem,5vw,2rem);
+  font-weight:400;
+  letter-spacing:.04em;
+  color:var(--bone);
+  text-decoration:none;
+}
+/* Number label */
+.msb-num{
+  font-family:'Cinzel',serif;
+  font-size:8px;letter-spacing:3px;
+  color:var(--accent);
+  transition:transform .3s ease;
+}
+.msb-item:hover .msb-num,
+.msb-item.touched .msb-num{transform:translateX(-6px)}
+
+/* Sidebar footer */
+.msb-foot{
+  padding:20px 28px;
+  border-top:1px solid var(--muted);
+  flex-shrink:0;
+}
+.msb-foot p{
+  font-family:'Cinzel',serif;font-size:8px;
+  letter-spacing:3px;color:var(--muted2);
+  text-transform:uppercase;
+}
+
+/* Hamburger open state — morph to X */
+.nmb.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.nmb.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.nmb.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.nmb span{transition:transform .35s ease,opacity .35s ease}
+
+/* ═══════════════════════════════════════════════
+   TABLET — 768px to 1024px
+═══════════════════════════════════════════════ */
+@media(max-width:1024px){
+  .nlinks{display:none}
+  .nmb{display:flex}
+  #cursor{display:none} /* touch device — hide cursor */
+  body{cursor:auto}
+
+  /* Bento: 6-col asymmetric */
+  #bentog{
+    grid-template-columns:repeat(6,1fr);
+    grid-template-rows:repeat(5,clamp(140px,22vw,200px));
+  }
+  #bentog .bc:nth-child(1){grid-column:1/7;grid-row:1/2}
+  #bentog .bc:nth-child(2){grid-column:1/4;grid-row:2/3}
+  #bentog .bc:nth-child(3){grid-column:4/7;grid-row:2/3}
+  #bentog .bc:nth-child(4){grid-column:1/7;grid-row:3/4}
+  #bentog .bc:nth-child(5){grid-column:1/4;grid-row:4/5}
+  #bentog .bc:nth-child(6){grid-column:4/7;grid-row:4/5}
+  #bentog .bc:nth-child(7){grid-column:1/4;grid-row:5/6}
+  #bentog .bc:nth-child(8){grid-column:4/7;grid-row:5/6}
+
+  .ftop{grid-template-columns:1fr 1fr}
+  .acard{flex:0 0 42vw}
+  .ggrid{grid-template-columns:repeat(3,1fr)}
+
+  /* Genre flip → tap-triggered on tablet */
+  .fcard:active .finner{transform:rotateY(180deg)}
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE — up to 767px
+═══════════════════════════════════════════════ */
+@media(max-width:767px){
+  :root{
+    --pp:20px;
+    --sg:clamp(56px,8vw,80px);
+    --gap:12px;
+  }
+
+  /* ── LOADER: single line, smaller text ── */
+  .ll{
+    font-size:clamp(1.4rem,8vw,2.2rem);
+    letter-spacing:.25em;
+    padding-right:.25em;
+  }
+  .lp{width:140px}
+
+  /* ── NAV ── */
+  #nav{padding:16px var(--pp)}
+  .nlogo{font-size:.8rem;letter-spacing:.3em}
+  .nlinks{display:none}
+  .nmb{display:flex}
+
+  /* ── HERO ── */
+  .htitle{font-size:clamp(2.4rem,10vw,3.8rem);letter-spacing:-.015em}
+  .heyb{font-size:8px;letter-spacing:4px}
+  .hsub{font-size:12px;max-width:100%;margin-top:16px}
+  .hact{margin-top:24px;gap:14px;flex-direction:column;align-items:flex-start}
+  .btnp{padding:11px 24px;font-size:8px}
+  .hdots{display:none} /* dots too cramped on mobile */
+
+  /* ── SECTION HEADS ── */
+  .sh{flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:clamp(24px,5vw,36px)}
+  .stit{font-size:clamp(1.7rem,7vw,2.5rem)}
+  .slink{font-size:8px}
+
+  /* ── GALLERY HORIZONTAL ── */
+  /* Disable pin on mobile — too disorienting; show simple horizontal scroll */
+  #gal-pin{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
+  #gal-pin::-webkit-scrollbar{display:none}
+  #gal-track{
+    padding:24px var(--pp);
+    gap:12px;
+    /* Let JS still build cards, we override scroll here */
+  }
+  .gc{scroll-snap-align:center}
+  #gal-progress{padding:12px var(--pp) clamp(36px,6vw,56px)}
+
+  /* ── FLOWING MENU ── */
+  #flow-sec{height:auto}
+  .mnav{height:auto}
+  .mitem{min-height:60px;border-top:1px solid var(--muted)}
+  .mlink{font-size:clamp(1.1rem,5vw,1.5rem);letter-spacing:.06em;padding:0 var(--pp)}
+  .mmqimg{display:none} /* hide image thumbnails in marquee on mobile */
+
+  /* ── GENRE GRID ── */
+  .gfilt{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  .gfilt::-webkit-scrollbar{display:none}
+  .ggrid{grid-template-columns:repeat(2,1fr);gap:var(--gap)}
+  .fcatn{font-size:1.1rem}
+  /* Flip on tap for mobile */
+  .fcard.tapped .finner{transform:rotateY(180deg)}
+
+  /* ── ARTISTS ── */
+  .acard{flex:0 0 72vw}
+  .aname{font-size:1.2rem}
+
+  /* ── BENTO ── */
+  #bentog{
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:auto;
+    gap:var(--gap);
+  }
+  /* Reset all grid placements for 2-col mobile */
+  #bentog .bc:nth-child(1){grid-column:1/3;grid-row:auto;aspect-ratio:16/9}
+  #bentog .bc:nth-child(n){grid-column:auto;grid-row:auto;aspect-ratio:3/4}
+  #bentog .bc:nth-child(1){grid-column:1/3;aspect-ratio:16/9}
+
+  /* ── FOOTER ── */
+  .ftop{grid-template-columns:1fr;gap:32px}
+  .fbot{flex-direction:column;align-items:flex-start;gap:8px}
+  .flogo{font-size:1.2rem}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"><div id="cd"></div><div id="cr"></div></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="ll"><span>P</span><span>I</span><span>C</span><span>T</span><span>O</span><span>A</span><span>R</span><span>T</span></div>
+  <div class="lp"><div class="lb" id="lbar"></div></div>
+  <div class="lnum" id="lnum">000</div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nlogo">PICTOART</div>
+  <ul class="nlinks">
+    <li><a href="#gal-sec">Works</a></li>
+    <li><a href="#flow-sec">Explore</a></li>
+    <li><a href="#genre-sec">Genre</a></li>
+    <li><a href="#art-sec">Artists</a></li>
+    <li><a href="#bento-sec">Collections</a></li>
+  </ul>
+  <button class="nmb" id="mob-toggle" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE OVERLAY -->
+<div id="mob-overlay"></div>
+
+<!-- MOBILE SIDEBAR -->
+<div id="mob-sidebar" aria-hidden="true">
+  <div class="msb-head">
+    <span class="msb-logo">PICTOART</span>
+    <button class="msb-close" id="mob-close" aria-label="Close menu">✕</button>
+  </div>
+  <nav class="msb-nav">
+    <div class="msb-item" data-img="https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=600&q=80">
+      <div class="msb-img"></div>
+      <div class="msb-item-ovl"></div>
+      <a class="msb-link" href="#gal-sec">
+        Works
+        <span class="msb-num">01</span>
+      </a>
+    </div>
+    <div class="msb-item" data-img="https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&q=80">
+      <div class="msb-img"></div>
+      <div class="msb-item-ovl"></div>
+      <a class="msb-link" href="#flow-sec">
+        Explore
+        <span class="msb-num">02</span>
+      </a>
+    </div>
+    <div class="msb-item" data-img="https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=600&q=80">
+      <div class="msb-img"></div>
+      <div class="msb-item-ovl"></div>
+      <a class="msb-link" href="#genre-sec">
+        Genre
+        <span class="msb-num">03</span>
+      </a>
+    </div>
+    <div class="msb-item" data-img="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600&q=80">
+      <div class="msb-img"></div>
+      <div class="msb-item-ovl"></div>
+      <a class="msb-link" href="#art-sec">
+        Artists
+        <span class="msb-num">04</span>
+      </a>
+    </div>
+    <div class="msb-item" data-img="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80">
+      <div class="msb-img"></div>
+      <div class="msb-item-ovl"></div>
+      <a class="msb-link" href="#bento-sec">
+        Collections
+        <span class="msb-num">05</span>
+      </a>
+    </div>
+  </nav>
+  <div class="msb-foot">
+    <p>Est. 2024 — Fine Art Gallery</p>
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hslide on"><img src="https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=1800&q=85" alt="" loading="eager"/></div>
+  <div class="hslide"><img src="https://images.unsplash.com/photo-1549490349-8643362247b5?w=1800&q=85" alt="" loading="eager"/></div>
+  <div class="hslide"><img src="https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=1800&q=85" alt="" loading="eager"/></div>
+  <div class="hovl"></div>
+  <div class="hcon">
+    <p class="heyb">Est. 2024 — Fine Art Gallery</p>
+    <h1 class="htitle">
+      <span class="hline"><span class="hw">Where</span></span>
+      <span class="hline"><span class="hw"><em>Art</em></span>&nbsp;<span class="hw">Finds</span></span>
+      <span class="hline"><span class="hw">Its</span>&nbsp;<span class="hw">Voice</span></span>
+    </h1>
+    <p class="hsub">A curated digital sanctuary for contemporary<br>and classical fine art — works that transcend the ordinary.</p>
+    <div class="hact">
+      <a href="#gal-sec" class="btnp">Explore Gallery</a>
+      <a href="#flow-sec" class="btnt">Browse Categories →</a>
+    </div>
+  </div>
+  <div class="hdots"><div class="hdot on"></div><div class="hdot"></div><div class="hdot"></div></div>
+</section>
+
+<!-- FEATURED WORKS — GSAP ScrollTrigger Horizontal Pin -->
+<section id="gal-sec" class="sec" style="padding-left:0;padding-right:0;padding-top:var(--sg);padding-bottom:0">
+  <div class="sh" style="padding:0 var(--pp)">
+    <div><p class="sey">Featured Works</p><h2 class="stit">The <em>Collection</em></h2></div>
+    <a href="#" class="slink">View all <span>→</span></a>
+  </div>
+  <div id="gal-pin">
+    <div id="gal-track"></div>
+  </div>
+  <div id="gal-progress"></div>
+</section>
+
+<!-- FLOWING MENU -->
+<section id="flow-sec"><div id="flow-con" style="height:100%"></div></section>
+
+<!-- GENRE -->
+<section id="genre-sec" class="sec">
+  <div class="sh">
+    <div><p class="sey">Browse by Genre</p><h2 class="stit">Explore <em>Worlds</em></h2></div>
+    <a href="#" class="slink">All genres <span>→</span></a>
+  </div>
+  <div class="gfilt">
+    <button class="gbtn on" data-f="all">All</button>
+    <button class="gbtn" data-f="abstract">Abstract</button>
+    <button class="gbtn" data-f="portrait">Portrait</button>
+    <button class="gbtn" data-f="landscape">Landscape</button>
+    <button class="gbtn" data-f="sculpture">Sculpture</button>
+    <button class="gbtn" data-f="digital">Digital</button>
+  </div>
+  <div class="ggrid" id="ggrid"></div>
+</section>
+
+<!-- ARTISTS -->
+<section id="art-sec" class="sec">
+  <div class="sh">
+    <div><p class="sey">The Creators</p><h2 class="stit">Featured <em>Artists</em></h2></div>
+    <a href="#" class="slink">All artists <span>→</span></a>
+  </div>
+  <div class="atwrap"><div class="atrack" id="atrack"></div></div>
+  <div class="anav">
+    <button class="anb" id="aprev">←</button>
+    <button class="anb" id="anext">→</button>
+  </div>
+</section>
+
+<!-- BENTO -->
+<section id="bento-sec" class="sec">
+  <div class="sh">
+    <div><p class="sey">Curated Collections</p><h2 class="stit">Themed <em>Selections</em></h2></div>
+    <a href="#" class="slink">View all <span>→</span></a>
+  </div>
+  <div id="bentog"></div>
+</section>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="ftop">
+    <div>
+      <div class="flogo">PICTOART</div>
+      <p class="ftag">A curated digital sanctuary where contemporary and classical fine art meets its audience. Beauty, preserved.</p>
+    </div>
+    <div class="fcol"><h4>Navigate</h4><ul><li><a href="#">Works</a></li><li><a href="#">Exhibitions</a></li><li><a href="#">Artists</a></li><li><a href="#">Collections</a></li></ul></div>
+    <div class="fcol"><h4>Connect</h4><ul><li><a href="#">Instagram</a></li><li><a href="#">Newsletter</a></li><li><a href="#">Press & Media</a></li><li><a href="#">Contact</a></li></ul></div>
+  </div>
+  <div class="fbot">
+    <p class="fcp">© 2026 PICTOART — All rights reserved</p>
+    <p class="fcp">Fine Art Gallery — Premium Experience</p>
+  </div>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ─── CURSOR ─────────────────────────────────────────── */
+const cDot=document.getElementById('cd'), cRing=document.getElementById('cr');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  cDot.style.left=mx+'px'; cDot.style.top=my+'px';
+});
+(function tickR(){
+  rx+=(mx-rx)*.1; ry+=(my-ry)*.1;
+  cRing.style.left=rx+'px'; cRing.style.top=ry+'px';
+  requestAnimationFrame(tickR);
+})();
+document.addEventListener('mouseover',e=>{
+  document.body.classList.toggle('cg', !!e.target.closest('a,button,.fcard,.acard,.bc,.gc'));
+});
+
+/* ─── NAV SCROLL ─────────────────────────────────────── */
+window.addEventListener('scroll',()=>
+  document.getElementById('nav').classList.toggle('sc',scrollY>60),{passive:true});
+
+/* ─── LOADER ─────────────────────────────────────────── */
+gsap.to('.ll span',{opacity:1,y:0,stagger:.07,duration:.7,ease:'power3.out',delay:.15});
+const lbar=document.getElementById('lbar'), lnum=document.getElementById('lnum');
+let pct=0;
+const loaderIv=setInterval(()=>{
+  pct=Math.min(100,pct+Math.random()*5+2);
+  lbar.style.width=pct+'%';
+  lnum.textContent=String(Math.floor(pct)).padStart(3,'0');
+  if(pct>=100){
+    clearInterval(loaderIv);
+    setTimeout(()=>{
+      gsap.to('#loader',{opacity:0,duration:.9,ease:'power2.inOut',onComplete(){
+        document.getElementById('loader').style.display='none';
+        /* ── start everything AFTER loader is gone ── */
+        startHero();
+        initGallery();
+        initFlowing();
+        initGenre();
+        initArtists();
+        initBento();
+        /* tiny delay so DOM is painted before ScrollTrigger measures */
+        setTimeout(initScrollReveal, 60);
+      }});
+    },300);
+  }
+},55);
+
+/* ─── HERO ───────────────────────────────────────────── */
+function startHero(){
+  gsap.to('.hw',{y:'0%',opacity:1,stagger:.13,duration:1.1,ease:'power3.out'});
+  gsap.to('.heyb',{opacity:1,duration:.9,ease:'power2.out',delay:.2});
+  gsap.to('.hsub',{opacity:1,duration:.9,ease:'power2.out',delay:.7});
+  gsap.to('.hact',{opacity:1,duration:.9,ease:'power2.out',delay:.95});
+}
+const hslides=document.querySelectorAll('.hslide');
+const hdots=document.querySelectorAll('.hdot');
+let hcur=0;
+function goSlide(n){
+  hslides[hcur].classList.remove('on'); hdots[hcur].classList.remove('on');
+  hcur=(n+hslides.length)%hslides.length;
+  hslides[hcur].classList.add('on'); hdots[hcur].classList.add('on');
+  const img=hslides[hcur].querySelector('img');
+  img.style.animation='none'; void img.offsetWidth;
+  img.style.animation='kB 8s ease-out forwards';
+}
+setInterval(()=>goSlide(hcur+1), 3500);
+
+/* ─── FEATURED WORKS — GSAP SCROLLTRIGGER HORIZONTAL ─── */
+function initGallery(){
+  const WORKS=[
+    {url:'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=900&q=85',title:'Twilight Study',artist:'Van Gogh'},
+    {url:'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=900&q=85',title:'Stellar Forms',artist:'Kandinsky'},
+    {url:'https://images.unsplash.com/photo-1549490349-8643362247b5?w=900&q=85',title:'Abstract Pulse',artist:'Miró'},
+    {url:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=85',title:'Ocean Memory',artist:'Turner'},
+    {url:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&q=85',title:'Mountain Dusk',artist:'Cézanne'},
+    {url:'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=900&q=85',title:'Urban Geometry',artist:'Mondrian'},
+    {url:'https://images.unsplash.com/photo-1448375240586-882707db888b?w=900&q=85',title:'Forest Light',artist:'Monet'},
+    {url:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&q=85',title:'Golden Hour',artist:'Vermeer'},
+  ];
+
+  const track  = document.getElementById('gal-track');
+  const pin    = document.getElementById('gal-pin');
+  const progWrap = document.getElementById('gal-progress');
+  const N = WORKS.length;
+
+  /* ── Card sizing: base height from viewport, 3:4 ratio ── */
+  const cardH = ()=> Math.min(window.innerHeight * 0.62, 560);
+  const cardW = ()=> cardH() * 0.75;
+  const GAP   = 24;
+
+  /* ── Build cards ── */
+  const cards = WORKS.map((w, i) => {
+    const card = document.createElement('div');
+    card.className = 'gc';
+    card.innerHTML = `
+      <img src="${w.url}" alt="${w.title}" loading="${i<3?'eager':'lazy'}"/>
+      <div class="gc-info">
+        <h3 class="gc-title">${w.title}</h3>
+        <p class="gc-artist">${w.artist}</p>
+      </div>`;
+    track.appendChild(card);
+    return card;
+  });
+
+  /* ── Build progress dots ── */
+  const dots = WORKS.map((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'gp-dot' + (i === 0 ? ' on' : '');
+    progWrap.appendChild(d);
+    return d;
+  });
+
+  /* ── Set initial card sizes ── */
+  function sizeCards(){
+    const h = cardH(), w = cardW();
+    cards.forEach(c => {
+      c.style.width  = w + 'px';
+      c.style.height = h + 'px';
+    });
+    /* Set pin height = card height + vertical padding */
+    const vpad = parseFloat(getComputedStyle(track).paddingTop) * 2;
+    pin.style.height = (h + vpad) + 'px';
+  }
+
+  /* ── Compute total scroll distance (track width - viewport width) ── */
+  function totalScroll(){
+    const w = cardW();
+    const trackW = N * w + (N - 1) * GAP
+                 + parseFloat(getComputedStyle(track).paddingLeft)
+                 + parseFloat(getComputedStyle(track).paddingRight);
+    return trackW - window.innerWidth;
+  }
+
+  /* ── GSAP ScrollTrigger pin + horizontal tween ── */
+  let ST, tween;
+
+  function buildST(){
+    /* kill old instances */
+    if(tween) tween.kill();
+    if(ST)    ST.kill();
+
+    sizeCards();
+
+    const dist = totalScroll();
+
+    /* The tween moves the track left by `dist` pixels */
+    tween = gsap.to(track, {
+      x: -dist,
+      ease: 'none',        /* linear — scroll drives it 1:1 */
+      paused: true,
+    });
+
+    /* Scale + brightness effect per card as it crosses center */
+    const CX = window.innerWidth / 2;
+
+    ST = ScrollTrigger.create({
+      trigger: pin,
+      start: 'top top',       /* pin as soon as section hits top */
+      end: () => '+=' + dist, /* scroll distance = track travel */
+      pin: true,
+      anticipatePin: 1,
+      scrub: 1.2,             /* silky smooth, slight lag feels premium */
+      onUpdate(self){
+        /* drive the horizontal tween with scroll progress */
+        tween.progress(self.progress);
+
+        /* per-card scale: card closest to viewport centre gets 1, others shrink */
+        cards.forEach((card, i) => {
+          const rect  = card.getBoundingClientRect();
+          const centX = rect.left + rect.width / 2;
+          const dist2 = Math.abs(centX - CX);
+          const maxD  = window.innerWidth * 0.55;
+          const t     = Math.max(0, 1 - dist2 / maxD);  /* 0→1 */
+          const sc    = 0.82 + 0.18 * t;                /* 0.82→1.0 */
+          const br    = 0.5  + 0.45 * t;                /* 0.50→0.95 */
+          gsap.set(card, {
+            scaleX: sc, scaleY: sc,
+            filter: `brightness(${br})`,
+            zIndex: Math.round(t * 10),
+          });
+
+          /* progress dots */
+          dots[i].classList.toggle('on', dist2 < window.innerWidth * 0.25);
+        });
+      },
+    });
+  }
+
+  buildST();
+
+  /* Rebuild on resize (debounced) */
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { buildST(); ScrollTrigger.refresh(); }, 200);
+  });
+}
+
+/* ─── FLOWING MENU ───────────────────────────────────── */
+function initFlowing(){
+  const ITEMS=[
+    {text:'Abstract', img:'https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&q=80'},
+    {text:'Portrait',  img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80'},
+    {text:'Landscape', img:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'},
+    {text:'Sculpture', img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80'},
+    {text:'Digital',   img:'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=600&q=80'},
+  ];
+  const con=document.getElementById('flow-con');
+  const mw=document.createElement('div');mw.className='mwrap';
+  const nav=document.createElement('nav');nav.className='mnav';
+  mw.appendChild(nav); con.appendChild(mw);
+
+  function edge(ex,ey,w,h){return((ex-w/2)**2+ey**2)<((ex-w/2)**2+(ey-h)**2)?'top':'bottom';}
+
+  ITEMS.forEach(item=>{
+    const div=document.createElement('div');div.className='mitem';div.style.borderColor='var(--muted)';
+    const a=document.createElement('a');a.className='mlink';a.href='#';a.textContent=item.text;
+    const mq=document.createElement('div');mq.className='mmq';mq.style.background='var(--bone)';
+    const mqiw=document.createElement('div');mqiw.className='mmqiw';
+    const mqin=document.createElement('div');mqin.className='mmqin';
+    mqiw.appendChild(mqin); mq.appendChild(mqiw);
+    for(let i=0;i<7;i++){
+      const p=document.createElement('div');p.className='mmqp';p.style.color='var(--bg)';
+      const s=document.createElement('span');s.textContent=item.text;
+      const im=document.createElement('div');im.className='mmqimg';im.style.backgroundImage=`url(${item.img})`;
+      p.appendChild(s); p.appendChild(im); mqin.appendChild(p);
+    }
+    div.appendChild(a); div.appendChild(mq); nav.appendChild(div);
+
+    /* start marquee after DOM paint */
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const pw=mqin.querySelector('.mmqp')?.offsetWidth||200;
+      if(pw) gsap.to(mqin,{x:-pw,duration:16,ease:'none',repeat:-1});
+    }));
+
+    const def={duration:.6,ease:'expo'};
+    a.addEventListener('mouseenter',ev=>{
+      const r=div.getBoundingClientRect();
+      const e=edge(ev.clientX-r.left,ev.clientY-r.top,r.width,r.height);
+      gsap.timeline({defaults:def})
+        .set(mq,{y:e==='top'?'-101%':'101%'},0)
+        .set(mqin,{y:e==='top'?'101%':'-101%'},0)
+        .to([mq,mqin],{y:'0%'},0);
+    });
+    a.addEventListener('mouseleave',ev=>{
+      const r=div.getBoundingClientRect();
+      const e=edge(ev.clientX-r.left,ev.clientY-r.top,r.width,r.height);
+      gsap.timeline({defaults:def})
+        .to(mq,{y:e==='top'?'-101%':'101%'},0)
+        .to(mqin,{y:e==='top'?'101%':'-101%'},0);
+    });
+  });
+}
+
+/* ─── GENRE FLIP CARDS ───────────────────────────────── */
+function initGenre(){
+  const DATA=[
+    {name:'Abstract',   label:'Expressionism', f:'abstract',  count:'240 works', img:'https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&q=80', desc:'Pure form meets raw emotion — works that transcend representation and reality.'},
+    {name:'Portrait',   label:'Human Form',    f:'portrait',  count:'180 works', img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80', desc:'The eternal gaze — capturing souls through brushstroke, light and shadow.'},
+    {name:'Landscape',  label:'Natural World', f:'landscape', count:'320 works', img:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80', desc:'Earth, sky, and sea rendered in the infinite language of paint.'},
+    {name:'Sculpture',  label:'3D Form',       f:'sculpture', count:'95 works',  img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', desc:'Three-dimensional art that commands physical space with undeniable presence.'},
+    {name:'Digital',    label:'New Media',     f:'digital',   count:'410 works', img:'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=600&q=80', desc:'Where algorithm meets aesthetics in the twenty-first century.'},
+    {name:'Photography',label:'Lens Art',      f:'abstract',  count:'290 works', img:'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=600&q=80', desc:'Light captured in an instant — truth made tangible and permanent.'},
+  ];
+  const grid=document.getElementById('ggrid');
+  DATA.forEach(d=>{
+    const el=document.createElement('div');
+    el.className='fcard'; el.dataset.f=d.f;
+    el.innerHTML=`<div class="finner"><div class="ffront"><img src="${d.img}" alt="${d.name}" loading="lazy"/><div class="finfo"><p class="fcatl">${d.label}</p><h3 class="fcatn">${d.name}</h3><p class="fcatc">${d.count}</p></div></div><div class="fback"><h3 class="fbackt">${d.name}</h3><p class="fbackd">${d.desc}</p><a href="#" class="fbackb">Explore →</a></div></div>`;
+    grid.appendChild(el);
+  });
+  document.querySelectorAll('.gbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.gbtn').forEach(b=>b.classList.remove('on'));
+      btn.classList.add('on');
+      const f=btn.dataset.f;
+      document.querySelectorAll('.fcard').forEach(c=>{
+        const show=f==='all'||c.dataset.f===f;
+        gsap.to(c,{opacity:show?1:.15,scale:show?1:.96,duration:.4,ease:'power2.out'});
+        c.style.pointerEvents=show?'auto':'none';
+      });
+    });
+  });
+}
+
+/* ─── ARTISTS ────────────────────────────────────────── */
+function initArtists(){
+  const ARTISTS=[
+    {name:'Elena Vasquez', medium:'Oil on Canvas',   num:'01', img:'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600&q=85'},
+    {name:'Marco Chen',    medium:'Digital & Mixed', num:'02', img:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=85'},
+    {name:'Aisha Okafor',  medium:'Sculpture',       num:'03', img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=85'},
+    {name:'Pierre Leblanc',medium:'Watercolour',     num:'04', img:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=85'},
+    {name:'Sana Nakamura', medium:'Photography',     num:'05', img:'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=600&q=85'},
+  ];
+  const track=document.getElementById('atrack');
+  ARTISTS.forEach(a=>{
+    const c=document.createElement('div'); c.className='acard';
+    c.innerHTML=`<img src="${a.img}" alt="${a.name}" loading="lazy"/><div class="ainfo"><p class="anum">${a.num} / 05</p><h3 class="aname">${a.name}</h3><p class="amedium">${a.medium}</p></div>`;
+    track.appendChild(c);
+  });
+  let aidx=0;
+  const aupd=()=>{
+    const cw=(track.querySelector('.acard')?.offsetWidth||300)+24;
+    gsap.to(track,{x:-aidx*cw,duration:.75,ease:'power3.inOut'});
+  };
+  document.getElementById('anext').addEventListener('click',()=>{aidx=Math.min(aidx+1,ARTISTS.length-1);aupd();});
+  document.getElementById('aprev').addEventListener('click',()=>{aidx=Math.max(aidx-1,0);aupd();});
+}
+
+/* ─── BENTO GRID ─────────────────────────────────────── */
+function initBento(){
+  const COLL=[
+    {title:'Twilight Studies',  meta:'12 works · Oil',         img:'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=800&q=80'},
+    {title:'Urban Fragments',   meta:'8 works · Photography',  img:'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&q=80'},
+    {title:'Raw Nature',        meta:'15 works · Watercolour', img:'https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80'},
+    {title:'The Human Gaze',    meta:'20 works · Portrait',    img:'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=600&q=80'},
+    {title:'Geometry & Form',   meta:'9 works · Digital',      img:'https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&q=80'},
+    {title:'Coastal Dreams',    meta:'11 works · Mixed',       img:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80'},
+    {title:'Still Life Redux',  meta:'7 works · Oil',          img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80'},
+    {title:'New Abstractions',  meta:'18 works · Acrylic',     img:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'},
+  ];
+  const grid=document.getElementById('bentog');
+  COLL.forEach(c=>{
+    const card=document.createElement('div'); card.className='bc';
+    card.innerHTML=`<img src="${c.img}" alt="${c.title}" loading="lazy"/><div class="bclab"><h3 class="bctit">${c.title}</h3><p class="bcmet">${c.meta}</p></div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* ─── SCROLL REVEAL — called AFTER all sections are built ── */
+function initScrollReveal(){
+  ScrollTrigger.refresh();
+
+  /* Section headers */
+  document.querySelectorAll('.sh').forEach(el=>{
+    gsap.fromTo(el,
+      {opacity:0, y:28},
+      {opacity:1, y:0, duration:.9, ease:'power2.out', immediateRender:false,
+       scrollTrigger:{trigger:el,start:'top 90%',toggleActions:'play none none none'}});
+  });
+
+  /* Genre cards */
+  document.querySelectorAll('.fcard').forEach((el,i)=>{
+    gsap.fromTo(el,
+      {opacity:0, y:32},
+      {opacity:1, y:0, duration:.75, ease:'power2.out', immediateRender:false,
+       delay:(i%3)*.1,
+       scrollTrigger:{trigger:el,start:'top 92%',toggleActions:'play none none none'}});
+  });
+
+  /* Artist cards — stagger whole track container */
+  gsap.fromTo('.acard',
+    {opacity:0, y:32},
+    {opacity:1, y:0, duration:.75, ease:'power2.out', stagger:.12, immediateRender:false,
+     scrollTrigger:{trigger:'#art-sec',start:'top 85%',toggleActions:'play none none none'}});
+
+  /* Bento cards */
+  document.querySelectorAll('.bc').forEach((el,i)=>{
+    gsap.fromTo(el,
+      {opacity:0, scale:.96},
+      {opacity:1, scale:1, duration:.8, ease:'power2.out', immediateRender:false,
+       delay:(i%4)*.09,
+       scrollTrigger:{trigger:el,start:'top 92%',toggleActions:'play none none none'}});
+  });
+
+  /* Flowing menu */
+  gsap.fromTo('#flow-sec',
+    {opacity:0},
+    {opacity:1, duration:.9, ease:'power2.out', immediateRender:false,
+     scrollTrigger:{trigger:'#flow-sec',start:'top 88%',toggleActions:'play none none none'}});
+
+  /* Gallery section header */
+  gsap.fromTo('#gal-sec .sh',
+    {opacity:0,y:24},
+    {opacity:1,y:0,duration:.8,ease:'power2.out', immediateRender:false,
+     scrollTrigger:{trigger:'#gal-sec',start:'top 85%',toggleActions:'play none none none'}});
+}
+
+/* ─── MOBILE SIDEBAR ─────────────────────────────────── */
+(function initSidebar(){
+  const sidebar  = document.getElementById('mob-sidebar');
+  const overlay  = document.getElementById('mob-overlay');
+  const toggle   = document.getElementById('mob-toggle');
+  const closeBtn = document.getElementById('mob-close');
+  const items    = document.querySelectorAll('.msb-item');
+
+  /* Inject background images from data-img */
+  items.forEach(item => {
+    item.querySelector('.msb-img').style.backgroundImage =
+      `url(${item.dataset.img})`;
+  });
+
+  function openSidebar(){
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    toggle.classList.add('open');
+    sidebar.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+    /* Stagger items in */
+    gsap.fromTo('.msb-head',
+      {y:-16,opacity:0},{y:0,opacity:1,duration:.4,ease:'power2.out'});
+    gsap.fromTo('.msb-item',
+      {x:50,opacity:0},
+      {x:0,opacity:1,stagger:.07,duration:.55,ease:'power3.out',delay:.1});
+    gsap.fromTo('.msb-foot',
+      {opacity:0},{opacity:1,duration:.4,ease:'power2.out',delay:.5});
+  }
+
+  function closeSidebar(){
+    gsap.to('.msb-item',
+      {x:30,opacity:0,stagger:.03,duration:.28,ease:'power2.in',
+       onComplete(){
+         sidebar.classList.remove('open');
+         overlay.classList.remove('open');
+         toggle.classList.remove('open');
+         sidebar.setAttribute('aria-hidden','true');
+         document.body.style.overflow = '';
+         /* Reset positions for next open */
+         gsap.set('.msb-item',{x:50,opacity:0});
+         gsap.set('.msb-head',{y:-16,opacity:0});
+         gsap.set('.msb-foot',{opacity:0});
+       }
+      });
+  }
+
+  toggle.addEventListener('click', openSidebar);
+  closeBtn.addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
+
+  /* Close when a link is clicked */
+  document.querySelectorAll('.msb-link').forEach(link => {
+    link.addEventListener('click', () => { closeSidebar(); });
+  });
+
+  /* Touch: image reveal on touchstart */
+  items.forEach(item => {
+    item.addEventListener('touchstart', () => {
+      items.forEach(i => { if(i!==item) i.classList.remove('touched'); });
+      item.classList.add('touched');
+    }, {passive:true});
+  });
+
+  /* Desktop mouse: image reveal on hover (handled by CSS :hover already) */
+
+  /* Keyboard escape */
+  document.addEventListener('keydown', e => {
+    if(e.key==='Escape' && sidebar.classList.contains('open')) closeSidebar();
+  });
+
+  /* Auto-close if resized to desktop */
+  window.addEventListener('resize', () => {
+    if(window.innerWidth > 1024 && sidebar.classList.contains('open'))
+      closeSidebar();
+  });
+})();
+
+/* ─── MOBILE: tap to flip genre cards ───────────────── */
+document.querySelectorAll('.fcard').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.fcard').forEach(c => {
+      if(c !== card) c.classList.remove('tapped');
+    });
+    card.classList.toggle('tapped');
+  });
+});
+</script>
+</body>
+</html>
